@@ -23,10 +23,10 @@ def get_deletes(config):
     database = config.get('database', {})
     tables = database.get('tables', {})
     sql = []
-    for table, data in tables.iteritems():
+    for table, data in tables.items():
         if 'delete' in data:
             fields = []
-            for f, v in data['delete'].iteritems():
+            for f, v in data['delete'].items():
                 fields.append(f'{f} = "{v}"' % (f, v))
             statement = f'DELETE FROM {table} WHERE ' + ' AND '.join(fields) + ' CASCADE'
             sql.append(statement)
@@ -39,9 +39,9 @@ def get_updates(config):
     database = config.get('database', {})
     tables = database.get('tables', {})
     sql = []
-    for table, data in tables.iteritems():
+    for table, data in tables.items():
         updates = []
-        for operation, details in data.iteritems():
+        for operation, details in data.items():
             if operation == 'nullify':
                 for field in listify(details):
                     updates.append(f"{field} = NULL")
