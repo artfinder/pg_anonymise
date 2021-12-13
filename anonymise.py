@@ -15,7 +15,7 @@ def get_truncates(config):
     truncates = database.get('truncate', [])
     sql = []
     for truncate in truncates:
-        sql.append('TRUNCATE \"%s\" CASCADE' % truncate)
+        sql.append(f'TRUNCATE {truncate} CASCADE')
     return sql
 
 
@@ -27,8 +27,8 @@ def get_deletes(config):
         if 'delete' in data:
             fields = []
             for f, v in data['delete'].iteritems():
-                fields.append('\"%s\" = "%s"' % (f, v))
-            statement = 'DELETE FROM \"%s\" WHERE ' % table + ' AND '.join(fields) + ' CASCADE'
+                fields.append(f'{f} = "{v}"' % (f, v))
+            statement = f'DELETE FROM {table} WHERE ' + ' AND '.join(fields) + ' CASCADE'
             sql.append(statement)
     return sql
 
@@ -44,45 +44,33 @@ def get_updates(config):
         for operation, details in data.iteritems():
             if operation == 'nullify':
                 for field in listify(details):
-                    updates.append("\"%s\" = NULL" % field)
+                    updates.append(f"{field} = NULL")
             elif operation == 'random_int':
                 for field in listify(details):
-                    updates.append("\"%s\" = (random()*1000000000)::int" % field)
+                    updates.append(f"{field} = (random()*1000000000)::int")
             elif operation == 'random_ip':
                 for field in listify(details):
-                    updates.append("\"%s\" = '0.0.0.0'::inet + (random()*1000000000)::int" % field)
+                    updates.append(f"{field} = '0.0.0.0'::inet + (random()*1000000000)::int")
             elif operation == 'random_email':
                 for field in listify(details):
-                    updates.append("\"%s\" = CONCAT(id, '@artfinder.com')"
-                                   % field)
+                    updates.append(f"{field} = CONCAT(id, '@artfinder.com')")
             elif operation == 'random_username':
                 for field in listify(details):
-                    updates.append("\"%s\" = CONCAT('_user_', id)" % field)
+                    updates.append(f"{field} = CONCAT('_user_', id)")
             elif operation == 'hash_value':
                 for field in listify(details):
-                    updates.append("\"%(field)s\" = MD5(CONCAT('{hash}', \"{field}\"))".format(
-                        field=field,
-                        hash=common_hash_secret
-                    ))
+                    updates.append(f'{field} = MD5(CONCAT("{common_hash_secret}", {field}))')
             elif operation == 'hash_email':
                 for field in listify(details):
                     updates.append(
-                        "\"{field}\" = CONCAT("
-                        "SUBSTR("
-                        "   MD5(LEFT(email, position('@' in {field}) - 1)),"
-                        "   0, LENGTH(LEFT(email, position('@' in {field})))"
-                        "),"
-                        "RIGHT({field}, char_length({field}) - position('@' in {field}) + 1)"
-                        ")".format(
-                            field=field
-                        )
+                        f"{field} = CONCAT(SUBSTR(MD5(LEFT(email, position('@' in {field}) - 1)),0, LENGTH(LEFT(email, position('@' in {field})))),RIGHT({field}, char_length({field}) - position('@' in {field}) + 1))"
                     )
             elif operation == 'delete':
                 continue
             else:
                 log.warning('Unknown operation.')
         if updates:
-            sql.append('UPDATE \"%s\" SET %s' % (table, ', '.join(updates)))
+            sql.append(f'UPDATE {table} SET ' + ', '.join(updates))
     return sql
 
 
@@ -92,7 +80,7 @@ def anonymize(config):
     sql.extend(get_deletes(config))
     sql.extend(get_updates(config))
     for stmt in sql:
-        print stmt + ';'
+        print(stmt + ';')
 
 
 if __name__ == '__main__':
@@ -106,15 +94,15 @@ if __name__ == '__main__':
         files = ['anonymise.yml']
 
     for f in files:
-        print "--"
-        print "-- %s" % f
-        print "--"
-        print ""
+        print("--")
+        print("-- %s" % f)
+        print("--")
+        print("")
         cfg = yaml.load(open(f), Loader=yaml.FullLoader)
         if 'databases' not in cfg:
             anonymize(cfg)
         else:
             databases = cfg.get('databases')
             for name, sub_cfg in databases.items():
-                print "USE \"%s\";" % name
+                print(f"USE {name};")
                 anonymize({'database': sub_cfg})
