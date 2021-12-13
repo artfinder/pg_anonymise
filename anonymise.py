@@ -59,10 +59,10 @@ def get_updates(config):
                     updates.append(f"{field} = CONCAT('_user_', id)")
             elif operation == 'hash_value':
                 for field in listify(details):
-                    updates.append(f"`{field}` = MD5(CONCAT(@common_hash_secret, `{field}`))")
+                    updates.append(f"{field} = MD5(CONCAT('{common_hash_secret}', {field}))")
             elif operation == 'hash_email':
                 for field in listify(details):
-                    updates.append(f"`{field}` = CONCAT(MD5(CONCAT(@common_hash_secret, `{field}`)), '@artfinder.com')")
+                    updates.append(f"{field} = CONCAT(MD5(CONCAT('{common_hash_secret}', {field})), '@artfinder.com')")
             elif operation == 'delete':
                 continue
             else:
