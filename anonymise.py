@@ -60,6 +60,9 @@ def get_updates(config):
             elif operation == 'hash_value':
                 for field in listify(details):
                     updates.append(f"{field} = MD5(CONCAT('{common_hash_secret}', {field}))")
+            elif operation == 'hash_value_8':
+                for field in listify(details):
+                    updates.append(f"{field} = SUBSTRING(MD5(CONCAT('{common_hash_secret}', {field})), 1, 8)")
             elif operation == 'hash_email':
                 for field in listify(details):
                     updates.append(f"{field} = CONCAT(MD5(CONCAT('{common_hash_secret}', {field})), '@artfinder.com')")
